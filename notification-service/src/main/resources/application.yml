@@ -1,0 +1,112 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: notification-service
+
+  # ── Shared Database ───────────────────────────────────────────────────────────
+  datasource:
+    url: jdbc:postgresql://localhost:5432/hms_db
+    username: hms_user
+    password: hms_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: NotificationHikariPool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: hms_notification  # ← this service only sees hms_notification schema
+
+  # ── Kafka ─────────────────────────────────────────────────────────────────────
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.hms.*"
+
+  # ── Mail (dummy — logs to console) ────────────────────────────────────────────
+  mail:
+    host: localhost
+    port: 1025
+    username: ''
+    password: ''
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+# ── Eureka ─────────────────────────────────────────────────────────────────────
+eureka:
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+  client:
+    service-url:
+      defaultZone: http://eureka:eureka-secret@localhost:8761/eureka/
+
+# ── JWT ────────────────────────────────────────────────────────────────────────
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration-ms: 86400000
+
+# ── Actuator ───────────────────────────────────────────────────────────────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# ── SpringDoc ──────────────────────────────────────────────────────────────────
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# ── Kafka Topics this service CONSUMES ────────────────────────────────────────
+kafka:
+  topics:
+    user-registered: user.registered
+    appointment-booked: appointment.booked
+    appointment-cancelled: appointment.cancelled
+    appointment-reminder: appointment.reminder
+    prescription-created: prescription.created
+    test-result-uploaded: test.result.uploaded
+    bill-generated: bill.generated
+    payment-success: payment.success
+    payment-overdue: payment.overdue
+
+# ── Notification config ────────────────────────────────────────────────────────
+notification:
+  email:
+    mode: DUMMY       # DUMMY = log to console
+    from: noreply@hms.local
+  sms:
+    mode: DUMMY       # DUMMY = log to console
+
+logging:
+  level:
+    com.hms: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

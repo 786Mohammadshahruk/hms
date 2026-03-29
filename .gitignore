@@ -1,0 +1,28 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.iws
+.vscode/
+*.DS_Store
+
+# Spring Boot
+*.log
+logs/
+
+# Docker volumes (local dev)
+postgres_data/
+redis_data/
+kafka_data/
+
+# Environment overrides (don't commit secrets)
+.env
+application-local.yml
+application-prod.yml
