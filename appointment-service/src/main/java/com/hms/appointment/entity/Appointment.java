@@ -4,8 +4,6 @@ import com.hms.appointment.enums.AppointmentStatus;
 import com.hms.appointment.enums.AppointmentType;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.UUID;
@@ -27,9 +25,9 @@ public class Appointment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @UuidGenerator
+    @Builder.Default
     @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    private UUID uuid = UUID.randomUUID();
 
     @Column(name = "patient_id", nullable = false)
     private Long patientId;

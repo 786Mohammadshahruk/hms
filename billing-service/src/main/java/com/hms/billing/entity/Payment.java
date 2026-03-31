@@ -4,8 +4,6 @@ import com.hms.billing.enums.PaymentMethod;
 import com.hms.billing.enums.PaymentStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
@@ -23,9 +21,9 @@ public class Payment extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @UuidGenerator
+    @Builder.Default
     @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    private UUID uuid = UUID.randomUUID();
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "bill_id", nullable = false)

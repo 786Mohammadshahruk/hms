@@ -4,8 +4,6 @@ import com.hms.user.enums.Gender;
 import com.hms.user.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -26,9 +24,9 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @UuidGenerator
+    @Builder.Default
     @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    private UUID uuid = UUID.randomUUID();
 
     @Column(name = "first_name", nullable = false, length = 100)
     private String firstName;

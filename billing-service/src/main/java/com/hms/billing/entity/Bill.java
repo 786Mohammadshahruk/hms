@@ -3,8 +3,6 @@ package com.hms.billing.entity;
 import com.hms.billing.enums.BillStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -24,9 +22,9 @@ public class Bill extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @UuidGenerator
+    @Builder.Default
     @Column(nullable = false, unique = true, updatable = false)
-    private UUID uuid;
+    private UUID uuid = UUID.randomUUID();
 
     @Column(name = "bill_number", nullable = false, unique = true, length = 50)
     private String billNumber;
