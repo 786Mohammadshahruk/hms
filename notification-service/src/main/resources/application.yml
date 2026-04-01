@@ -40,7 +40,9 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.hms.*"
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: java.util.LinkedHashMap
+        spring.json.use.type.headers: false
 
   # ── Mail (dummy — logs to console) ────────────────────────────────────────────
   mail:

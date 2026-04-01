@@ -107,11 +107,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getDoctors(
             @RequestParam(required = false) String specialization,
             @RequestParam(required = false) String department,
-            @RequestParam(defaultValue = "0")   int page,
-            @RequestParam(defaultValue = "10")  int size,
-            @RequestParam(defaultValue = "firstName") String sortBy) {
+            @RequestParam(defaultValue = "0")  int page,
+            @RequestParam(defaultValue = "10") int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        Pageable pageable = PageRequest.of(page, size);
         PagedResponse<UserResponse> doctors =
             userService.getDoctors(specialization, department, pageable);
         return ResponseEntity.ok(ApiResponse.success("Doctors fetched", doctors));

@@ -31,7 +31,6 @@ spring:
     redis:
       host: localhost
       port: 6379
-      password: hms_redis_pass
       timeout: 2000ms
       lettuce:
         pool:

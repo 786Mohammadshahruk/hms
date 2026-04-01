@@ -22,9 +22,10 @@ public interface DoctorProfileRepository extends JpaRepository<DoctorProfile, Lo
         JOIN dp.user u
         WHERE u.active = true
           AND (:specialization IS NULL
-               OR LOWER(dp.specialization) LIKE LOWER(CONCAT('%', :specialization, '%')))
+               OR LOWER(dp.specialization) LIKE LOWER(CONCAT('%', CAST(:specialization AS string), '%')))
           AND (:department IS NULL
-               OR LOWER(dp.department) LIKE LOWER(CONCAT('%', :department, '%')))
+               OR LOWER(dp.department) LIKE LOWER(CONCAT('%', CAST(:department AS string), '%')))
+        ORDER BY dp.specialization ASC, u.firstName ASC
         """)
     Page<DoctorProfile> findBySpecializationAndDepartment(
             @Param("specialization") String specialization,
