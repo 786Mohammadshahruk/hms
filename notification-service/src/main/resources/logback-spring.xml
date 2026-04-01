@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="notification-service"/>
+
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%property{APP_NAME}] [reqId=%X{requestId:--}] [userId=%X{userId:--}] [role=%X{userRole:--}] [%X{method:--} %X{path:--}] %logger{36} - %msg%n"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <logger name="com.hms" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="org.springframework.security"           level="WARN"/>
+    <logger name="org.hibernate.SQL"                      level="WARN"/>
+    <logger name="org.springframework.web"                level="WARN"/>
+    <logger name="org.springframework.kafka"              level="WARN"/>
+    <logger name="org.apache.kafka"                       level="WARN"/>
+    <logger name="com.netflix.eureka"                     level="WARN"/>
+    <logger name="com.netflix.discovery"                  level="WARN"/>
+
+</configuration>

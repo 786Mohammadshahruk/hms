@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(curl -s http://localhost:8080/actuator/health)"
+      "Bash(curl -s http://localhost:8080/actuator/health)",
+      "Bash(grep -r MDC /Users/shahrukhkhan/Downloads/hms --include=*.java)",
+      "Bash(find /Users/shahrukhkhan/Downloads/hms -path */target -prune -o -type d -name resources -print)"
     ]
   }
 }
