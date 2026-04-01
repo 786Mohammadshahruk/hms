@@ -10,6 +10,7 @@ import java.time.LocalTime;
 public class BlockedSlotRequest {
 
     @NotNull(message = "Date is required")
+    @FutureOrPresent(message = "Blocked date must be today or in the future")
     private LocalDate blockedDate;
 
     @NotNull(message = "Start time is required")
