@@ -32,6 +32,15 @@ public class UserDetailsImpl implements UserDetails {
         );
     }
 
+    /** Header-based constructor used by InternalAuthFilter (no DB lookup needed). */
+    public UserDetailsImpl(Long id, String email, String role) {
+        this.id          = id;
+        this.email       = email;
+        this.password    = "";
+        this.active      = true;
+        this.authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+    }
+
     // ── UserDetails contract ───────────────────────────────────────────────────
 
     @Override public String getUsername()                   { return email; }

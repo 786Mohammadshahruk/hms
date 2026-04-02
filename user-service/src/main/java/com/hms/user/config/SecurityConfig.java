@@ -1,6 +1,6 @@
 package com.hms.user.config;
 
-import com.hms.user.security.JwtAuthenticationFilter;
+import com.hms.user.security.InternalAuthFilter;
 import com.hms.user.security.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -36,8 +36,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserDetailsServiceImpl  userDetailsService;
+    private final InternalAuthFilter     internalAuthFilter;
+    private final UserDetailsServiceImpl userDetailsService;
 
     private static final String[] PUBLIC_PATHS = {
         "/api/v1/auth/**",
@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthenticationFilter,
+            .addFilterBefore(internalAuthFilter,
                 UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

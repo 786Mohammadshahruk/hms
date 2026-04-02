@@ -69,6 +69,10 @@ jwt:
   expiration-ms: 86400000
   refresh-expiration-ms: 604800000
 
+# ── Internal Gateway Secret ────────────────────────────────────────────────────
+internal:
+  secret: hms-internal-secret
+
 # ── Actuator ──────────────────────────────────────────────────────────────────
 management:
   endpoints:

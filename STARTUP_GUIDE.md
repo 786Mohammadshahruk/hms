@@ -5,7 +5,7 @@
 The application has **2 layers** that must be started in order:
 
 ```
-Layer 1 — Infrastructure   : PostgreSQL + Redis + Kafka + Zookeeper
+Layer 1 — Infrastructure   : PostgreSQL + Redis + Zookeeper + Kafka  (local installs)
 Layer 2 — Spring Services  : Eureka → 5 Microservices → API Gateway
 ```
 
@@ -13,6 +13,7 @@ Layer 2 — Spring Services  : Eureka → 5 Microservices → API Gateway
 - Always start infrastructure FIRST
 - Always start Eureka BEFORE any microservice
 - Always start API Gateway LAST
+- All API calls go through the gateway on port **8080** — direct service ports return 403
 
 ---
 
@@ -36,55 +37,52 @@ Layer 2 — Spring Services  : Eureka → 5 Microservices → API Gateway
 
 ## STEP 1 — Start Infrastructure
 
-### Option A — Using Docker
+You need **3 separate CMD windows** for Redis, Zookeeper, and Kafka. PostgreSQL runs automatically as a Windows Service after installation.
 
-Open CMD and run:
+### CMD 1 — Start Redis
 
-```cmd
-cd C:\path\to\hms
-docker-compose up -d
-```
-
-Verify all containers are running:
-
-```cmd
-docker ps
-```
-
-All containers should show `healthy` status.
-
----
-
-### Option B — Using Locally Installed Tools (No Docker)
-
-You need **3 separate CMD windows**.
-
-**CMD 1 — Start Redis**
 ```cmd
 redis-server
 ```
-Wait for: `Ready to accept connections on port 6379`
 
-**CMD 2 — Start Zookeeper**
+Wait for:
+```
+Ready to accept connections on port 6379
+```
+
+> Redis also runs as a Windows Service — this CMD is optional if the service is already running.
+
+---
+
+### CMD 2 — Start Zookeeper
+
 ```cmd
 cd C:\kafka
 .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
 ```
-Wait for: `binding to port 0.0.0.0/0.0.0.0:2181`
 
-**CMD 3 — Start Kafka**
+Wait for:
+```
+binding to port 0.0.0.0/0.0.0.0:2181
+```
+
+---
+
+### CMD 3 — Start Kafka
+
 ```cmd
 cd C:\kafka
 .\bin\windows\kafka-server-start.bat .\config\server.properties
 ```
-Wait for: `started (kafka.server.KafkaServer)`
 
-> PostgreSQL runs automatically as a Windows Service after installation.
-> Redis also runs as a Windows Service — CMD 1 above is optional if service is already running.
+Wait for:
+```
+started (kafka.server.KafkaServer)
+```
 
 ---
 
-## STEP 2 — One Time Database Setup
+## STEP 2 — One-Time Database Setup
 
 > Skip this if you have already done this before.
 
@@ -150,7 +148,6 @@ Started EurekaServerApplication in X.XXX seconds
 
 **Verify:** Open browser → http://localhost:8761
 Login: `eureka` / `eureka-secret`
-You should see the Eureka dashboard.
 
 ---
 
@@ -160,11 +157,6 @@ You should see the Eureka dashboard.
 cd C:\path\to\hms\user-service
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
-```
-
-**Wait until you see:**
-```
-Started UserServiceApplication in X.XXX seconds
 ```
 
 **Verify:**
@@ -183,11 +175,6 @@ set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
 ```
 
-**Wait until you see:**
-```
-Started AppointmentServiceApplication in X.XXX seconds
-```
-
 **Verify:**
 ```cmd
 curl http://localhost:8082/actuator/health
@@ -202,11 +189,6 @@ Expected: `{"status":"UP"}`
 cd C:\path\to\hms\medical-records-service
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
-```
-
-**Wait until you see:**
-```
-Started MedicalRecordsServiceApplication in X.XXX seconds
 ```
 
 **Verify:**
@@ -225,11 +207,6 @@ set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
 ```
 
-**Wait until you see:**
-```
-Started BillingServiceApplication in X.XXX seconds
-```
-
 **Verify:**
 ```cmd
 curl http://localhost:8084/actuator/health
@@ -244,11 +221,6 @@ Expected: `{"status":"UP"}`
 cd C:\path\to\hms\notification-service
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
-```
-
-**Wait until you see:**
-```
-Started NotificationServiceApplication in X.XXX seconds
 ```
 
 **Verify:**
@@ -267,11 +239,6 @@ set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.x.x.x-hotspot
 mvn spring-boot:run
 ```
 
-**Wait until you see:**
-```
-Started ApiGatewayApplication in X.XXX seconds
-```
-
 **Verify:**
 ```cmd
 curl http://localhost:8080/actuator/health
@@ -283,8 +250,6 @@ Expected: `{"status":"UP"}`
 ## STEP 4 — Final Verification
 
 ### 4.1 Check All Services Health
-
-Run all at once:
 
 ```cmd
 curl http://localhost:8081/actuator/health
@@ -305,11 +270,11 @@ Login: `eureka` / `eureka-secret`
 Under **"Instances currently registered with Eureka"** you must see all 5:
 
 ```
-✅ USER-SERVICE             1 instance UP
-✅ APPOINTMENT-SERVICE      1 instance UP
-✅ MEDICAL-RECORDS-SERVICE  1 instance UP
-✅ BILLING-SERVICE          1 instance UP
-✅ NOTIFICATION-SERVICE     1 instance UP
+USER-SERVICE             1 instance UP
+APPOINTMENT-SERVICE      1 instance UP
+MEDICAL-RECORDS-SERVICE  1 instance UP
+BILLING-SERVICE          1 instance UP
+NOTIFICATION-SERVICE     1 instance UP
 ```
 
 ### 4.3 Test via API Gateway
@@ -330,7 +295,7 @@ If you get back `{"success":true,...}` — everything is working correctly.
 START ORDER                          CMD WINDOW
 ─────────────────────────────────────────────────
 [Infrastructure]
-  1. PostgreSQL          (auto / service)
+  1. PostgreSQL          (auto / Windows Service)
   2. Redis               CMD 1
   3. Zookeeper           CMD 2
   4. Kafka               CMD 3
@@ -351,7 +316,7 @@ START ORDER                          CMD WINDOW
 
 ```cmd
 # Stop Spring Boot services
-Ctrl+C in each CMD window (CMD 4 to CMD 10)
+Ctrl+C in CMD 4 through CMD 10
 
 # Stop Kafka
 Ctrl+C in CMD 3
@@ -361,9 +326,6 @@ Ctrl+C in CMD 2
 
 # Stop Redis
 Ctrl+C in CMD 1
-
-# Stop Docker containers (if using Docker)
-docker-compose down
 ```
 
 ---
@@ -375,19 +337,25 @@ Eureka is not running yet. Start Eureka first and wait until fully started.
 
 ### Service fails to start — `Connection refused to localhost:5432`
 PostgreSQL is not running.
-- Docker: `docker-compose up -d`
-- Local: Start PostgreSQL service from Windows Services
+Start PostgreSQL service from Windows Services (services.msc → PostgreSQL → Start).
 
 ### Service fails to start — `Schema-validation: missing column`
 Tables are missing or out of sync. Re-run `init-schemas.sql` from pgAdmin.
 
 ### Service fails to start — `Connection refused to localhost:9092`
-Kafka is not running. Start Zookeeper first, then Kafka.
+Kafka is not running. Start Zookeeper first (CMD 2), then Kafka (CMD 3).
+
+### Service fails to start — `Connection refused to localhost:6379`
+Redis is not running. Start it in CMD 1 with `redis-server`.
 
 ### Service not showing in Eureka
 - Check the service started without errors
 - Check health: `curl http://localhost:{port}/actuator/health`
 - Services take 30-60 seconds to register after startup
+
+### `403 Forbidden` on API call
+You are calling a service directly on its port instead of through the gateway.
+All API calls must go through: `http://localhost:8080`
 
 ### `401 Unauthorized` from Eureka dashboard
 Use credentials: `eureka` / `eureka-secret`

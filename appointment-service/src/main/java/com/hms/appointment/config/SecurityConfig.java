@@ -1,6 +1,6 @@
 package com.hms.appointment.config;
 
-import com.hms.appointment.security.JwtAuthenticationFilter;
+import com.hms.appointment.security.InternalAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final InternalAuthFilter internalAuthFilter;
 
     private static final String[] PUBLIC_PATHS = {
         "/v3/api-docs/**",
@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(PUBLIC_PATHS).permitAll()
                 .anyRequest().authenticated()
             )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(internalAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

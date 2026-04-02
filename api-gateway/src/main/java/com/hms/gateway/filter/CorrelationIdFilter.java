@@ -1,7 +1,7 @@
 package com.hms.gateway.filter;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -14,18 +14,20 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 /**
- * Global Gateway filter that generates a correlationId for every request
- * and propagates it downstream as X-Correlation-Id header.
- *
- * Since Gateway uses WebFlux (non-blocking), MDC is set for the current
- * thread only for the duration of the filter. The correlationId is
- * forwarded via header so downstream services can pick it up.
+ * Global Gateway filter that generates a correlationId for every request,
+ * propagates it downstream as X-Correlation-Id, and stamps every forwarded
+ * request with X-Internal-Secret so downstream services can reject calls
+ * that did not originate from the gateway.
  */
 @Slf4j
 @Component
 public class CorrelationIdFilter implements GlobalFilter, Ordered {
 
-    private static final String CORRELATION_HEADER = "X-Correlation-Id";
+    private static final String CORRELATION_HEADER  = "X-Correlation-Id";
+    private static final String INTERNAL_SECRET_HEADER = "X-Internal-Secret";
+
+    @Value("${internal.secret}")
+    private String internalSecret;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -39,9 +41,10 @@ public class CorrelationIdFilter implements GlobalFilter, Ordered {
 
         final String finalCorrelationId = correlationId;
 
-        // Add correlation ID to downstream request and response headers
+        // Add correlation ID + internal secret to downstream request headers
         ServerHttpRequest mutatedRequest = request.mutate()
                 .header(CORRELATION_HEADER, finalCorrelationId)
+                .header(INTERNAL_SECRET_HEADER, internalSecret)
                 .build();
 
         ServerHttpResponse response = exchange.getResponse();

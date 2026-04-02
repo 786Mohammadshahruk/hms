@@ -1,13 +1,11 @@
 # HMS — Complete API Calling Sequence by Journey
 
-> **Base URLs**
-> | Service | URL |
+> **All requests go through the API Gateway**
+> | | URL |
 > |---|---|
-> | user-service | `http://localhost:8081` |
-> | appointment-service | `http://localhost:8082` |
-> | medical-records-service | `http://localhost:8083` |
-> | billing-service | `http://localhost:8084` |
-> | notification-service | `http://localhost:8085` |
+> | API Gateway | `http://localhost:8080` |
+>
+> Direct calls to individual service ports (`:8081`–`:8085`) return `403 Forbidden`.
 
 > **Token Variables used throughout this document**
 > | Variable | How to get |
@@ -26,7 +24,7 @@
 ### Step 1 — Register Admin
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/register \
+curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Super",
@@ -40,7 +38,7 @@ curl -X POST http://localhost:8081/api/v1/auth/register \
 ### Step 2 — Admin Login → save ADMIN_TOKEN
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "admin@hms.com", "password": "Admin@123"}'
 ```
@@ -48,7 +46,7 @@ curl -X POST http://localhost:8081/api/v1/auth/login \
 ### Step 3 — Admin creates a Doctor
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/users/admin/create \
+curl -X POST http://localhost:8080/api/v1/users/admin/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -d '{
@@ -69,7 +67,7 @@ curl -X POST http://localhost:8081/api/v1/users/admin/create \
 ### Step 4 — Admin creates a Cashier
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/users/admin/create \
+curl -X POST http://localhost:8080/api/v1/users/admin/create \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -d '{
@@ -90,7 +88,7 @@ curl -X POST http://localhost:8081/api/v1/users/admin/create \
 ### Step 1 — Doctor Login → save DOCTOR_TOKEN
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "john.doe@hms.com", "password": "Doctor@123"}'
 ```
@@ -98,27 +96,27 @@ curl -X POST http://localhost:8081/api/v1/auth/login \
 ### Step 2 — Doctor sets schedule for each working day
 
 ```bash
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{"dayOfWeek": "MONDAY", "startTime": "09:00", "endTime": "17:00", "slotDurationMinutes": 30}'
 
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{"dayOfWeek": "TUESDAY", "startTime": "09:00", "endTime": "17:00", "slotDurationMinutes": 30}'
 
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{"dayOfWeek": "WEDNESDAY", "startTime": "09:00", "endTime": "17:00", "slotDurationMinutes": 30}'
 
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{"dayOfWeek": "THURSDAY", "startTime": "09:00", "endTime": "17:00", "slotDurationMinutes": 30}'
 
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{"dayOfWeek": "FRIDAY", "startTime": "09:00", "endTime": "13:00", "slotDurationMinutes": 30}'
@@ -127,18 +125,18 @@ curl -X POST http://localhost:8082/api/v1/schedules/doctor/2 \
 ### Step 3 — Doctor views their schedule
 
 ```bash
-curl -X GET http://localhost:8082/api/v1/schedules/doctor/2 \
+curl -X GET http://localhost:8080/api/v1/schedules/doctor/2 \
   -H "Authorization: Bearer <DOCTOR_TOKEN>"
 ```
 
 ### Step 4 — Doctor blocks a slot (leave/emergency)
 
 ```bash
-curl -X POST http://localhost:8082/api/v1/schedules/doctor/2/block \
+curl -X POST http://localhost:8080/api/v1/schedules/doctor/2/block \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{
-    "date": "2026-04-07",
+    "blockedDate": "2026-04-07",
     "startTime": "14:00",
     "endTime": "16:00",
     "reason": "Personal leave"
@@ -150,10 +148,10 @@ curl -X POST http://localhost:8082/api/v1/schedules/doctor/2/block \
 ## JOURNEY 2 — Patient Registers and Books Appointment
 
 ### Step 1 — Patient registers
-> 🔔 **Notification fired:** Welcome to HMS email
+> 🔔 **Notification fired:** Welcome to HMS
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/register \
+curl -X POST http://localhost:8080/api/v1/auth/register \
   -H "Content-Type: application/json" \
   -d '{
     "firstName": "Alice",
@@ -169,7 +167,7 @@ curl -X POST http://localhost:8081/api/v1/auth/register \
 ### Step 2 — Patient login → save PATIENT_TOKEN
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "alice@hms.com", "password": "Patient@123"}'
 ```
@@ -177,27 +175,29 @@ curl -X POST http://localhost:8081/api/v1/auth/login \
 ### Step 3 — Patient views their profile
 
 ```bash
-curl -X GET http://localhost:8081/api/v1/users/me \
+curl -X GET http://localhost:8080/api/v1/users/me \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
-### Step 4 — Patient browses doctors (no token required)
+### Step 4 — Patient browses doctors
 
 ```bash
-curl -X GET "http://localhost:8081/api/v1/users/doctors?specialization=cardio"
+curl -X GET "http://localhost:8080/api/v1/users/doctors?specialization=cardio" \
+  -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
 ### Step 5 — Patient checks available slots for a date
 
 ```bash
-curl -X GET "http://localhost:8082/api/v1/schedules/doctor/2/slots?date=2026-04-07"
+curl -X GET "http://localhost:8080/api/v1/schedules/doctor/2/slots?date=2026-04-07" \
+  -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
 ### Step 6 — Patient books appointment
-> 🔔 **Notification fired:** Appointment confirmation email
+> 🔔 **Notification fired:** Appointment confirmation
 
 ```bash
-curl -X POST http://localhost:8082/api/v1/appointments \
+curl -X POST http://localhost:8080/api/v1/appointments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <PATIENT_TOKEN>" \
   -d '{
@@ -214,21 +214,21 @@ curl -X POST http://localhost:8082/api/v1/appointments \
 ### Step 7 — Patient views their appointments
 
 ```bash
-curl -X GET http://localhost:8082/api/v1/appointments/my \
+curl -X GET http://localhost:8080/api/v1/appointments/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
 ### Step 8 — Patient checks notifications
 
 ```bash
-curl -X GET http://localhost:8085/api/v1/notifications/my \
+curl -X GET http://localhost:8080/api/v1/notifications/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
 ### Step 9 — Patient checks unread notification count
 
 ```bash
-curl -X GET http://localhost:8085/api/v1/notifications/my/unread-count \
+curl -X GET http://localhost:8080/api/v1/notifications/my/unread-count \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
@@ -236,34 +236,18 @@ curl -X GET http://localhost:8085/api/v1/notifications/my/unread-count \
 
 ## JOURNEY 3 — Reschedule or Cancel Appointment
 
-### Reschedule
-
-#### Step 1 — Check available slots for new date
+### Check available slots for new date
 
 ```bash
-curl -X GET "http://localhost:8082/api/v1/schedules/doctor/2/slots?date=2026-04-08"
+curl -X GET "http://localhost:8080/api/v1/schedules/doctor/2/slots?date=2026-04-08" \
+  -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
-#### Step 2 — Reschedule appointment
+### Cancel appointment
+> 🔔 **Notification fired:** Appointment cancellation
 
 ```bash
-curl -X PUT http://localhost:8082/api/v1/appointments/1/reschedule \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <PATIENT_TOKEN>" \
-  -d '{
-    "newDate": "2026-04-08",
-    "newStartTime": "11:00",
-    "reason": "Conflict with work"
-  }'
-```
-
-### Cancel
-
-#### Step 3 — Cancel appointment
-> 🔔 **Notification fired:** Appointment cancellation email
-
-```bash
-curl -X PUT http://localhost:8082/api/v1/appointments/1/cancel \
+curl -X PATCH http://localhost:8080/api/v1/appointments/1/cancel \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <PATIENT_TOKEN>" \
   -d '{"reason": "Feeling better now"}'
@@ -276,21 +260,21 @@ curl -X PUT http://localhost:8082/api/v1/appointments/1/cancel \
 ### Step 1 — Doctor views today's appointments
 
 ```bash
-curl -X GET "http://localhost:8082/api/v1/appointments/doctor/2?date=2026-04-08" \
+curl -X GET "http://localhost:8080/api/v1/appointments/my" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>"
 ```
 
 ### Step 2 — Patient arrives, doctor marks IN_PROGRESS
 
 ```bash
-curl -X PATCH "http://localhost:8082/api/v1/appointments/1/status?status=IN_PROGRESS" \
+curl -X PATCH "http://localhost:8080/api/v1/appointments/1/status?status=IN_PROGRESS" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>"
 ```
 
 ### Step 3 — Doctor writes prescription
 
 ```bash
-curl -X POST http://localhost:8083/api/v1/prescriptions \
+curl -X POST http://localhost:8080/api/v1/prescriptions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{
@@ -323,7 +307,7 @@ curl -X POST http://localhost:8083/api/v1/prescriptions \
 ### Step 4 — Doctor orders a lab test
 
 ```bash
-curl -X POST http://localhost:8083/api/v1/tests \
+curl -X POST http://localhost:8080/api/v1/tests \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>" \
   -d '{
@@ -339,7 +323,7 @@ curl -X POST http://localhost:8083/api/v1/tests \
 ### Step 5 — Doctor marks appointment COMPLETED
 
 ```bash
-curl -X PATCH "http://localhost:8082/api/v1/appointments/1/status?status=COMPLETED" \
+curl -X PATCH "http://localhost:8080/api/v1/appointments/1/status?status=COMPLETED" \
   -H "Authorization: Bearer <DOCTOR_TOKEN>"
 ```
 
@@ -350,16 +334,16 @@ curl -X PATCH "http://localhost:8082/api/v1/appointments/1/status?status=COMPLET
 ### Step 1 — Cashier login → save CASHIER_TOKEN
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/login \
+curl -X POST http://localhost:8080/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email": "sara@hms.com", "password": "Cashier@123"}'
 ```
 
 ### Step 2 — Cashier creates bill
-> 🔔 **Notification fired:** New bill generated email
+> 🔔 **Notification fired:** New bill generated
 
 ```bash
-curl -X POST http://localhost:8084/api/v1/bills \
+curl -X POST http://localhost:8080/api/v1/bills \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <CASHIER_TOKEN>" \
   -d '{
@@ -382,16 +366,16 @@ curl -X POST http://localhost:8084/api/v1/bills \
 ### Step 3 — View the bill
 
 ```bash
-curl -X GET http://localhost:8084/api/v1/bills/1 \
+curl -X GET http://localhost:8080/api/v1/bills/1 \
   -H "Authorization: Bearer <CASHIER_TOKEN>"
 ```
 
 ### Step 4 — Patient pays first installment
-> 🔔 **Notification fired:** Payment receipt email
+> 🔔 **Notification fired:** Payment receipt
 > Bill status → `PARTIAL`
 
 ```bash
-curl -X POST http://localhost:8084/api/v1/payments \
+curl -X POST http://localhost:8080/api/v1/payments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <PATIENT_TOKEN>" \
   -d '{
@@ -402,11 +386,11 @@ curl -X POST http://localhost:8084/api/v1/payments \
 ```
 
 ### Step 5 — Patient pays remaining balance
-> 🔔 **Notification fired:** Payment receipt email
+> 🔔 **Notification fired:** Payment receipt
 > Bill status → `PAID`
 
 ```bash
-curl -X POST http://localhost:8084/api/v1/payments \
+curl -X POST http://localhost:8080/api/v1/payments \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <PATIENT_TOKEN>" \
   -d '{
@@ -419,14 +403,14 @@ curl -X POST http://localhost:8084/api/v1/payments \
 ### Step 6 — View all payments for the bill
 
 ```bash
-curl -X GET http://localhost:8084/api/v1/payments/bill/1 \
+curl -X GET http://localhost:8080/api/v1/payments/bill/1 \
   -H "Authorization: Bearer <CASHIER_TOKEN>"
 ```
 
 ### Step 7 — Patient views their payment history
 
 ```bash
-curl -X GET http://localhost:8084/api/v1/payments/my \
+curl -X GET http://localhost:8080/api/v1/payments/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
@@ -435,10 +419,10 @@ curl -X GET http://localhost:8084/api/v1/payments/my \
 ## JOURNEY 6 — Lab Test Result Upload
 
 ### Step 1 — Admin uploads test result
-> 🔔 **Notification fired:** Test result available email (ALERT if abnormal)
+> 🔔 **Notification fired:** Test result available (ALERT if abnormal)
 
 ```bash
-curl -X PUT http://localhost:8083/api/v1/tests/1/result \
+curl -X PUT http://localhost:8080/api/v1/tests/1/result \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -d '{
@@ -452,14 +436,14 @@ curl -X PUT http://localhost:8083/api/v1/tests/1/result \
 ### Step 2 — Patient views test results
 
 ```bash
-curl -X GET http://localhost:8083/api/v1/tests/my \
+curl -X GET http://localhost:8080/api/v1/tests/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
 ### Step 3 — Patient views prescriptions
 
 ```bash
-curl -X GET http://localhost:8083/api/v1/prescriptions/my \
+curl -X GET http://localhost:8080/api/v1/prescriptions/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
@@ -469,31 +453,31 @@ curl -X GET http://localhost:8083/api/v1/prescriptions/my \
 
 ```bash
 # All appointments
-curl -X GET http://localhost:8082/api/v1/appointments/my \
+curl -X GET http://localhost:8080/api/v1/appointments/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # Only completed appointments
-curl -X GET "http://localhost:8082/api/v1/appointments/my?status=COMPLETED" \
+curl -X GET "http://localhost:8080/api/v1/appointments/my?status=COMPLETED" \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # All bills
-curl -X GET http://localhost:8084/api/v1/bills/my \
+curl -X GET http://localhost:8080/api/v1/bills/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # All payments
-curl -X GET http://localhost:8084/api/v1/payments/my \
+curl -X GET http://localhost:8080/api/v1/payments/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # All prescriptions
-curl -X GET http://localhost:8083/api/v1/prescriptions/my \
+curl -X GET http://localhost:8080/api/v1/prescriptions/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # All lab tests
-curl -X GET http://localhost:8083/api/v1/tests/my \
+curl -X GET http://localhost:8080/api/v1/tests/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 
 # All notifications
-curl -X GET http://localhost:8085/api/v1/notifications/my \
+curl -X GET http://localhost:8080/api/v1/notifications/my \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
@@ -503,39 +487,39 @@ curl -X GET http://localhost:8085/api/v1/notifications/my \
 
 ```bash
 # View all users
-curl -X GET http://localhost:8081/api/v1/users \
+curl -X GET http://localhost:8080/api/v1/users \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 
 # Filter by role
-curl -X GET "http://localhost:8081/api/v1/users?role=DOCTOR" \
+curl -X GET "http://localhost:8080/api/v1/users?role=DOCTOR" \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 
 # Filter by active status
-curl -X GET "http://localhost:8081/api/v1/users?active=true" \
+curl -X GET "http://localhost:8080/api/v1/users?active=true" \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 
 # Deactivate a user
-curl -X PATCH http://localhost:8081/api/v1/users/admin/3/deactivate \
+curl -X PATCH http://localhost:8080/api/v1/users/admin/3/deactivate \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 
 # Reactivate a user
-curl -X PATCH http://localhost:8081/api/v1/users/admin/3/activate \
+curl -X PATCH http://localhost:8080/api/v1/users/admin/3/activate \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 
 # Reset a user's password
-curl -X POST http://localhost:8081/api/v1/users/admin/3/reset-password \
+curl -X POST http://localhost:8080/api/v1/users/admin/3/reset-password \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -d '{"newPassword": "NewPass@123"}'
 
 # Change user role
-curl -X PATCH http://localhost:8081/api/v1/users/admin/3/role \
+curl -X PATCH http://localhost:8080/api/v1/users/admin/3/role \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <ADMIN_TOKEN>" \
   -d '{"role": "DOCTOR"}'
 
 # View notifications for any user
-curl -X GET http://localhost:8085/api/v1/notifications/user/3 \
+curl -X GET http://localhost:8080/api/v1/notifications/user/3 \
   -H "Authorization: Bearer <ADMIN_TOKEN>"
 ```
 
@@ -546,7 +530,7 @@ curl -X GET http://localhost:8085/api/v1/notifications/user/3 \
 ### Refresh access token (when it expires after 24h)
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/refresh \
+curl -X POST http://localhost:8080/api/v1/auth/refresh \
   -H "Content-Type: application/json" \
   -d '{"refreshToken": "<REFRESH_TOKEN>"}'
 ```
@@ -554,7 +538,7 @@ curl -X POST http://localhost:8081/api/v1/auth/refresh \
 ### Logout (invalidates refresh token)
 
 ```bash
-curl -X POST http://localhost:8081/api/v1/auth/logout \
+curl -X POST http://localhost:8080/api/v1/auth/logout \
   -H "Authorization: Bearer <PATIENT_TOKEN>"
 ```
 
@@ -588,6 +572,7 @@ SCHEDULED → NO_SHOW
 ```
 PENDING → PARTIAL → PAID
 PENDING → CANCELLED
+PENDING → OVERDUE
 ```
 
 ## Payment Status Values
